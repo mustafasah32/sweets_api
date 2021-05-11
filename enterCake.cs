@@ -7,29 +7,32 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Sweets.Cakes.Models;
+using System.Linq;
 
 namespace Sweets.Cakes
 {
+
     public static class enterCake
     {
         [FunctionName("enterCake")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
-
-            string name = req.Query["name"];
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
+            var cake = JsonConvert.DeserializeObject<Cake>(requestBody);
 
-            string responseMessage = string.IsNullOrEmpty(name)
-                ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                : $"Hello, {name}. This HTTP triggered function executed successfully.";
-
-            return new OkObjectResult(responseMessage);
+            if (dbmock.Cakes.Any(c=>c.Name==cake.Name))
+            {
+                return new OkObjectResult(false);
+            }
+            else
+            {
+                dbmock.Cakes.Add(new Cake(dbmock.Cakes.Count.ToString(),cake.Comment,cake.Name,cake.ImageUrl,cake.YumFactor));
+                return new OkObjectResult(true);
+            }
         }
     }
 }
