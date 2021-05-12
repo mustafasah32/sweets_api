@@ -24,14 +24,15 @@ namespace Sweets.Cakes
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var cake = JsonConvert.DeserializeObject<Cake>(requestBody);
 
-            if (dbmock.Cakes.Any(c=>c.Name==cake.Name))
+            if (dbmock.Cakes.Any(c => c.Name == cake.Name))
             {
-                return new OkObjectResult(false);
+                return new OkObjectResult("-1");
             }
             else
             {
-                dbmock.Cakes.Add(new Cake(dbmock.Cakes.Count.ToString(),cake.Comment,cake.Name,cake.ImageUrl,cake.YumFactor));
-                return new OkObjectResult(true);
+                var id = dbmock.Cakes.Count.ToString();
+                dbmock.Cakes.Add(new Cake(id, cake.Comment, cake.Name, cake.ImageUrl, cake.YumFactor));
+                return new OkObjectResult(id);
             }
         }
     }
